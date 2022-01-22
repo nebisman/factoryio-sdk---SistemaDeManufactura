@@ -16,3 +16,4 @@ C:\Users\sanal\factoryio-sdk - SistemaDeManufatura\laboratoryUnal\Controllers\ob
 C:\Users\sanal\factoryio-sdk - SistemaDeManufatura\laboratoryUnal\Controllers\obj\Debug\net5.0\ref\SistemaDeManufatura.dll
 C:\Users\sanal\factoryio-sdk - SistemaDeManufatura\laboratoryUnal\Controllers\obj\Debug\net5.0\SistemaDeManufatura.pdb
 C:\Users\sanal\factoryio-sdk - SistemaDeManufatura\laboratoryUnal\Controllers\obj\Debug\net5.0\SistemaDeManufatura.genruntimeconfig.cache
+C:\Users\sanal\factoryio-sdk - SistemaDeManufatura\laboratoryUnal\Controllers\obj\Debug\net5.0\SistemaDeManufatura.csprojAssemblyReference.cache
