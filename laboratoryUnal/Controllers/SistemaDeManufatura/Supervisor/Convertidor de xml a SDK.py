@@ -262,27 +262,20 @@ def run_xml_to_sdk():
   xml2sdk(filename)
 
 
-root = Tk()
-frm = ttk.Frame(root, padding=10)
-frm.grid()
-ttk.Label(frm, text="Select an .xml file to run xml2SDK: ").grid(column=0, row=0)
-ttk.Button(frm, text="Open", command=get_file).grid(column=1, row=0)
 
-file_to_convert = ttk.Label(frm, text="")
-file_to_convert.grid(column=0, row=1)
+if __name__ == '__main__':
+    root = Tk()
+    frm = ttk.Frame(root, padding=10)
+    frm.grid()
+    ttk.Label(frm, text="Select an .xml file to run xml2SDK: ").grid(column=0, row=0)
+    ttk.Button(frm, text="Open", command=get_file).grid(column=1, row=0)
 
-run_button = ttk.Button(frm, text="Run xml2SDK", command=run_xml_to_sdk)
-run_button.config(state="disabled")
-run_button.grid(column=1, row=1)
+    file_to_convert = ttk.Label(frm, text="")
+    file_to_convert.grid(column=0, row=1)
 
-
-root.mainloop()
-
-#Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-
-
-
-
-
-
-
+    run_button = ttk.Button(frm, text="Run xml2SDK", command=run_xml_to_sdk)
+    run_button.config(state="disabled")
+    run_button.grid(column=1, row=1)
+    #Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+    print("yeah")
+    root.mainloop()

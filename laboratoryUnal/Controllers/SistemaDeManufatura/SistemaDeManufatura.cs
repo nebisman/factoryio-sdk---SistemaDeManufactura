@@ -175,6 +175,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
         bool colorMessage2;
         public SistemaDeManufatura()
         {
+
             //READER
             newState = "";
             newStateName = "";
