@@ -2,7 +2,7 @@
 using System.Threading;
 
 
-namespace Controllers.Scenes.SistemaDeManufatura
+namespace Controllers.Scenes.SistemaDeManufactura
 {
     class Reader
     {

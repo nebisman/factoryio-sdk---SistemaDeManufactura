@@ -9,7 +9,7 @@ using System.Threading;
 using System.Diagnostics;
 
 using EngineIO;
-using Controllers.Scenes.SistemaDeManufatura;
+using Controllers.Scenes.SistemaDeManufactura;
 
 namespace Controllers
 {
@@ -39,7 +39,7 @@ namespace Controllers
             //Forcing a rising edge on the start MemoryBit so FACTORY I/O can detect it
             SwitchToRun(start);
 
-            Controller controller = new SistemaDeManufatura();
+            Controller controller = new SistemaDeManufactura();
 
             Console.WriteLine(string.Format("Running controller: {0}", controller.GetType().Name));
             Console.WriteLine("Press Ctrl+C to shutdown...");

@@ -2,7 +2,7 @@
 using System;
 using System.Threading;
 
-namespace Controllers.Scenes.SistemaDeManufatura
+namespace Controllers.Scenes.SistemaDeManufactura
 {
     class SistemaDeManufatura_M1
     {

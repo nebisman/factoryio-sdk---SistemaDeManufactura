@@ -1,14 +1,10 @@
 ﻿using EngineIO;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace Controllers.Scenes.SistemaDeManufatura
+namespace Controllers.Scenes.SistemaDeManufactura
 {
-    class SistemaDeManufatura_Robo0
+    class SistemaDeManufactura_Robo0
     {
         private enum RoboSteps
         {
@@ -36,8 +32,8 @@ namespace Controllers.Scenes.SistemaDeManufatura
         float searchingForPieceYvalue;
         float pieceFoundYcoordinates;
         readonly MemoryBit stopbladeEndE1;
-        readonly SistemaDeManufaturaSupervisor sistemaDeManufaturaSupervisor;
-        public SistemaDeManufatura_Robo0(MemoryFloat robo0X, MemoryFloat robo0XPos, MemoryFloat robo0Y, MemoryFloat robo0YPos, MemoryFloat robo0Z, MemoryFloat robo0ZPos, MemoryBit robo0Grab, MemoryBit robo0Grabbed, MemoryBit robo0RotatePiece, MemoryBit stopbladeEndE1, SistemaDeManufaturaSupervisor sistemaDeManufaturaSupervisor)
+        readonly SistemaDeManufacturaSupervisor sistemaDeManufaturaSupervisor;
+        public SistemaDeManufactura_Robo0(MemoryFloat robo0X, MemoryFloat robo0XPos, MemoryFloat robo0Y, MemoryFloat robo0YPos, MemoryFloat robo0Z, MemoryFloat robo0ZPos, MemoryBit robo0Grab, MemoryBit robo0Grabbed, MemoryBit robo0RotatePiece, MemoryBit stopbladeEndE1, SistemaDeManufacturaSupervisor sistemaDeManufaturaSupervisor)
         {
             this.robo0X = robo0X;
             this.robo0XPos = robo0XPos;
@@ -154,11 +150,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 robo0Steps = RoboSteps.UP_WITHOUT_PIECE;
                 if (color == "c1")
                 {
-                    sistemaDeManufaturaSupervisor.On("r_okc1b1");
+                    sistemaDeManufaturaSupervisor.On("R_ok_c1_b1");
                 }
                 else if (color == "c2")
                 {
-                    sistemaDeManufaturaSupervisor.On("r_okc2b1");
+                    sistemaDeManufaturaSupervisor.On("R_ok_c2_b1");
                 }
                 Thread.Sleep(50);
             }
@@ -268,7 +264,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 MemoryMap.Instance.Update();
                 Thread.Sleep(100);
                 robo0Steps = RoboSteps.UP_WITHOUT_PIECE;
-                sistemaDeManufaturaSupervisor.On("r_okc2b2");
+                sistemaDeManufaturaSupervisor.On("R_ok_c2_b2");
             }
             else if (robo0Steps == RoboSteps.UP_WITHOUT_PIECE)
             {
@@ -376,7 +372,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 MemoryMap.Instance.Update();
                 Thread.Sleep(100);
                 robo0Steps = RoboSteps.UP_WITHOUT_PIECE;
-                sistemaDeManufaturaSupervisor.On("r_okc3b3");
+                sistemaDeManufaturaSupervisor.On("R_ok_c3_b3");
             }
             else if (robo0Steps == RoboSteps.UP_WITHOUT_PIECE)
             {
@@ -483,7 +479,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             {
                 robo0Grab.Value = false;
                 robo0Steps = RoboSteps.UP_WITHOUT_PIECE;
-                sistemaDeManufaturaSupervisor.On("r_oke2");
+                sistemaDeManufaturaSupervisor.On("R_ok_e2");
             }
             else if (robo0Steps == RoboSteps.UP_WITHOUT_PIECE)
             {

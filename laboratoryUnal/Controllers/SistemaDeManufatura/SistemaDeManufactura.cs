@@ -2,9 +2,9 @@
 using System;
 using System.Threading;
 
-namespace Controllers.Scenes.SistemaDeManufatura
+namespace Controllers.Scenes.SistemaDeManufactura
 {
-    public class SistemaDeManufatura : Controller
+    public class SistemaDeManufactura : Controller
     {
         //READER
         string newState;
@@ -13,7 +13,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
 
         //SUPERVISOR
         bool supervisoryApproval;
-        readonly SistemaDeManufaturaSupervisor sistemaDeManufaturaSupervisor;
+        readonly SistemaDeManufacturaSupervisor sistemaDeManufaturaSupervisor;
         int e1Counter;
 
         //ESTEIRAS E1 E2
@@ -108,7 +108,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
         bool rotationBool;
 
         //ROBÔ
-        readonly SistemaDeManufatura_Robo0 robo0;
+        readonly SistemaDeManufactura_Robo0 robo0;
         readonly MemoryBit startC1toB1;
         readonly MemoryBit startC2toB1;
         readonly MemoryBit startC2toB2;
@@ -152,10 +152,10 @@ namespace Controllers.Scenes.SistemaDeManufatura
         
         int m1Counter;
         bool roboM1Finished;
-        bool bool_m1_ini_a;
-        bool bool_m1_ini_b;
-        bool bool_m1_ini_c_c1;
-        bool bool_m1_ini_c_c2;
+        bool bool_M1_c3;
+        bool bool_M1_c2;
+        bool bool_M1_c1;
+        bool bool_M1_c2_b1;
         bool m1message1Printed;
         bool m1message2Printed;
         private enum M1states
@@ -173,7 +173,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
         bool initialMessage;
         bool colorMessage;
         bool colorMessage2;
-        public SistemaDeManufatura()
+        public SistemaDeManufactura()
         {
 
             //READER
@@ -183,7 +183,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
 
             //SUPERVISOR
             supervisoryApproval = false;
-            sistemaDeManufaturaSupervisor = new SistemaDeManufaturaSupervisor();
+            sistemaDeManufaturaSupervisor = new SistemaDeManufacturaSupervisor();
             e1Counter = 0;
 
             //ESTEIRAS E1 E2
@@ -272,7 +272,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             color = "";
             roboFinished = false;
 
-            robo0 = new SistemaDeManufatura_Robo0(
+            robo0 = new SistemaDeManufactura_Robo0(
                 MemoryMap.Instance.GetFloat("Pick & Place 0 X Set Point (V)", MemoryType.Output),
                 MemoryMap.Instance.GetFloat("Pick & Place 0 X Position (V)", MemoryType.Input),
                 MemoryMap.Instance.GetFloat("Pick & Place 0 Y Set Point (V)", MemoryType.Output),
@@ -318,10 +318,10 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 startC1fromB1toM1, startC2fromB1toM1, startC2fromB2toM1, startC3fromB3toM1);
             m1Counter = 0;
             roboM1Finished = false;
-            bool_m1_ini_a = false;
-            bool_m1_ini_b = false;
-            bool_m1_ini_c_c1 = false;
-            bool_m1_ini_c_c2 = false;
+            bool_M1_c3 = false;
+            bool_M1_c2 = false;
+            bool_M1_c1 = false;
+            bool_M1_c2_b1 = false;
             m1message1Printed = false;
             m1message2Printed = false;
 
@@ -333,9 +333,6 @@ namespace Controllers.Scenes.SistemaDeManufatura
 
         public override void Execute(int elapsedMilliseconds)
         {
-
-            
-
             if (initialMessage)
             {
                 Console.WriteLine("\n");
@@ -349,74 +346,73 @@ namespace Controllers.Scenes.SistemaDeManufatura
             //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BUTTON LIGHTS START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             //E1
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("e1_lig"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_on"))
                 conveyorE1StartLight.Value = true;
             else
                 conveyorE1StartLight.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("e1_des"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_off"))
                 conveyorE1StopLight.Value = true;
             else
                 conveyorE1StopLight.Value = false;
 
             //Rôbo
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c1b1"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_b1"))
                 roboC1toB1Lights.Value = true;
             else
                 roboC1toB1Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c2b1"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b1"))
                 roboC2toB1Lights.Value = true;
             else
                 roboC2toB1Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c2b2"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b2"))
                 roboC2toB2Lights.Value = true;
             else
                 roboC2toB2Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c3b3"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_b3"))
                 roboC3toB3Lights.Value = true;
             else
                 roboC3toB3Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c1e2"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_e2"))
                 roboC1toE2Lights.Value = true;
             else
                 roboC1toE2Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c2e2"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_e2"))
                 roboC2toE2Lights.Value = true;
             else
                 roboC2toE2Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("r_c3e2"))
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_e2"))
                 roboC3toE2Lights.Value = true;
             else
                 roboC3toE2Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("m1_ini_b") && !m1message1Printed && !m1message2Printed)
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2") && !m1message1Printed && !m1message2Printed)
                 m1C2fromB2Lights.Value = true;
             else
                 m1C2fromB2Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("m1_ini_c_c2") && !m1message1Printed && !m1message2Printed)
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2_b1") && !m1message1Printed && !m1message2Printed)
                 m1C2fromB1Lights.Value = true;
             else
                 m1C2fromB1Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("m1_ini_a") && !m1message1Printed && !m1message2Printed)
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c3") && !m1message1Printed && !m1message2Printed)
                 m1C3fromB3Lights.Value = true;
             else
                 m1C3fromB3Lights.Value = false;
 
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("m1_ini_c_c1") && !m1message1Printed && !m1message2Printed)
+            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c1") && !m1message1Printed && !m1message2Printed)
                 m1C1fromB1Lights.Value = true;
             else
                 m1C1fromB1Lights.Value = false;
 
             //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BUTTON LIGHTS END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
             // Keyboard input:
             try
             {
@@ -459,11 +455,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
             ftSensorEndE2.CLK(sensorEndE2.Value);
 
             //E1
-            if (conveyorE1Start.Value || (newStateName == "e1_lig" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            if (conveyorE1Start.Value || (newStateName == "E1_on" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (e1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("e1_lig");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_on");
                     if (supervisoryApproval)
                     {
                         conveyorE1.Value = true;
@@ -471,10 +467,10 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (!conveyorE1Stop.Value || (newStateName == "e1_des" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (!conveyorE1Stop.Value || (newStateName == "E1_off" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {   if (e1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("e1_des");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_off");
                     if (supervisoryApproval)
                     {
                         conveyorE1.Value = false;
@@ -1008,11 +1004,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
             //%%%%%%%%%%%%%%%%%%%% ESTEIRA ENDS %%%%%%%%%%%%%%%%%%%%
 
             //%%%%%%%%%%%%%%%%%%%% ROBÔ STARTS %%%%%%%%%%%%%%%%%%%%
-            if (startC1toE2.Value || (newStateName == "r_c1e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            if (startC1toE2.Value || (newStateName == "R_c1_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c1e2");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
@@ -1020,11 +1016,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC2toE2.Value || (newStateName == "r_c2e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC2toE2.Value || (newStateName == "R_c2_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c2e2");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
@@ -1032,11 +1028,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC3toE2.Value || (newStateName == "r_c3e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC3toE2.Value || (newStateName == "R_c3_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c3e2");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
@@ -1044,11 +1040,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC1toB1.Value || (newStateName == "r_c1b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC1toB1.Value || (newStateName == "R_c1_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c1b1");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_b1");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB1;
@@ -1057,11 +1053,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC2toB1.Value || (newStateName == "r_c2b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC2toB1.Value || (newStateName == "R_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c2b1");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b1");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB1;
@@ -1070,11 +1066,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC2toB2.Value || (newStateName == "r_c2b2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC2toB2.Value || (newStateName == "R_c2_b2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c2b2");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB2;
@@ -1082,11 +1078,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if (startC3toB3.Value || (newStateName == "r_c3b3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            else if (startC3toB3.Value || (newStateName == "R_c3_b3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
             {
                 if (roboCounter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("r_c3b3");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_b3");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB3;
@@ -1144,7 +1140,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             {
                 if (colorMessage)
                 {
-                    sistemaDeManufaturaSupervisor.On("s_c1");
+                    sistemaDeManufaturaSupervisor.On("S_c1");
                     colorMessage = false;
                     colorMessage2 = true;
                 }
@@ -1153,7 +1149,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             {
                 if (colorMessage)
                 {
-                    sistemaDeManufaturaSupervisor.On("s_c2");
+                    sistemaDeManufaturaSupervisor.On("S_c2");
                     colorMessage = false;
                     colorMessage2 = true;
                 }
@@ -1162,7 +1158,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             {
                 if (colorMessage)
                 {
-                    sistemaDeManufaturaSupervisor.On("s_c3");
+                    sistemaDeManufaturaSupervisor.On("S_c3");
                     colorMessage = false;
                     colorMessage2 = true;
                 }
@@ -1171,7 +1167,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
             {
                 if (colorMessage2)
                 {
-                    sistemaDeManufaturaSupervisor.On("s_des");
+                    sistemaDeManufaturaSupervisor.On("S_nada");
                     colorMessage2 = false;
                 }
                 colorMessage = true;
@@ -1181,11 +1177,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
             //%%%%%%%%%%%%%%%%%%%% M1 STARTS %%%%%%%%%%%%%%%%%%%%
             roboM1.Takeaway();
 
-            if ((startC1fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "m1_ini_c_c1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+            if ((startC1fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
             {
                 if (m1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_c_c1");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C1fromB1toM1;
@@ -1193,11 +1189,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if ((startC2fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "m1_ini_c_c2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+            else if ((startC2fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
             {
                 if (m1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_c_c2");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2_b1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB1toM1;
@@ -1205,11 +1201,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if ((startC2fromB2toM1.Value && m1states == M1states.IDLE) || (newStateName == "m1_ini_b" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+            else if ((startC2fromB2toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
             {
                 if (m1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_b");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB2toM1;
@@ -1217,11 +1213,11 @@ namespace Controllers.Scenes.SistemaDeManufatura
                     }
                 }
             }
-            else if ((startC3fromB3toM1.Value && m1states == M1states.IDLE) || (newStateName == "m1_ini_a" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+            else if ((startC3fromB3toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
             {
                 if (m1Counter == 0)
                 {
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_a");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c3");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C3fromB3toM1;
@@ -1242,22 +1238,22 @@ namespace Controllers.Scenes.SistemaDeManufatura
             }
             else if (m1states == M1states.C1fromB1toM1)
             {
-                if ((newStateName == "m1_ini_b" || startC2fromB2toM1.Value) && !m1message1Printed)
+                if ((newStateName == "M1_c2" || startC2fromB2toM1.Value) && !m1message1Printed)
                 {
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
-                    bool_m1_ini_b = true;
+                    bool_M1_c2 = true;
                     m1message1Printed = true;
                 }
                 roboM1Finished = roboM1.C1fromB1toM1();
-                if (roboM1Finished && bool_m1_ini_b)
+                if (roboM1Finished && bool_M1_c2)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_b = false;
+                    bool_M1_c2 = false;
                     m1message1Printed = false;
-                    sistemaDeManufaturaSupervisor.On("m1_fim");
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_b");
+                    sistemaDeManufaturaSupervisor.On("M1_fin");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB2toM1;
@@ -1271,28 +1267,28 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 else if (roboM1Finished)
                 {
                     m1states = M1states.IDLE;
-                    sistemaDeManufaturaSupervisor.On("m1_fim");
+                    sistemaDeManufaturaSupervisor.On("M1_fin");
                 }
                 
             }
             else if (m1states == M1states.C2fromB1toM1)
             {
                 roboM1Finished = roboM1.C2fromB1toM1();
-                if ((newStateName == "m1_ini_a" || startC3fromB3toM1.Value) && !m1message1Printed)
+                if ((newStateName == "M1_c3" || startC3fromB3toM1.Value) && !m1message1Printed)
                 {
                     m1C3fromB3Lights.Value = false;
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
-                    bool_m1_ini_a = true;
+                    bool_M1_c3 = true;
                     m1message1Printed = true;
                 }
-                if (roboM1Finished && bool_m1_ini_a)
+                if (roboM1Finished && bool_M1_c3)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_a = false;
+                    bool_M1_c3 = false;
                     m1message1Printed = false;
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_a");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c3");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C3fromB3toM1;
@@ -1311,32 +1307,32 @@ namespace Controllers.Scenes.SistemaDeManufatura
             else if (m1states == M1states.C2fromB2toM1)
             {
                 roboM1Finished = roboM1.C2fromB2toM1();
-                if ((newStateName == "m1_ini_c_c1" || startC1fromB1toM1.Value) && !m1message1Printed && !m1message2Printed)
+                if ((newStateName == "M1_c1" || startC1fromB1toM1.Value) && !m1message1Printed && !m1message2Printed)
                 {
                     m1C1fromB1Lights.Value = false;
                     m1C3fromB3Lights.Value = false;
-                    bool_m1_ini_c_c1 = true;
+                    bool_M1_c1 = true;
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
                     m1message1Printed = true;
                 }
-                else if ((newStateName == "m1_ini_a" || startC3fromB3toM1.Value) && !m1message2Printed && !m1message1Printed)
+                else if ((newStateName == "M1_c3" || startC3fromB3toM1.Value) && !m1message2Printed && !m1message1Printed)
                 {
                     m1C3fromB3Lights.Value = false;
                     m1C1fromB1Lights.Value = false;
-                    bool_m1_ini_a = true;
+                    bool_M1_c3 = true;
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
                     m1message2Printed = true;
                 }
-                if (roboM1Finished && bool_m1_ini_c_c1)
+                if (roboM1Finished && bool_M1_c1)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_c_c1 = false;
+                    bool_M1_c1 = false;
                     m1message1Printed = false;
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_c_c1");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C1fromB1toM1;
@@ -1347,12 +1343,12 @@ namespace Controllers.Scenes.SistemaDeManufatura
                         newStateName = "";
                     }
                 }
-                else if (roboM1Finished && bool_m1_ini_a)
+                else if (roboM1Finished && bool_M1_c3)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_a = false;
+                    bool_M1_c3 = false;
                     m1message2Printed = false;
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_a");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c3");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C3fromB3toM1;
@@ -1371,32 +1367,32 @@ namespace Controllers.Scenes.SistemaDeManufatura
             else if (m1states == M1states.C3fromB3toM1)
             {
                 roboM1Finished = roboM1.C3fromB3toM1();
-                if ((newStateName == "m1_ini_b" || startC2fromB2toM1.Value) && !m1message1Printed && !m1message2Printed)
+                if ((newStateName == "M1_c2" || startC2fromB2toM1.Value) && !m1message1Printed && !m1message2Printed)
                 {
                     m1C2fromB2Lights.Value = false;
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
-                    bool_m1_ini_b = true;
+                    bool_M1_c2 = true;
                     m1message1Printed = true;
                 }
-                else if ((newStateName == "m1_ini_c_c2" || startC2fromB1toM1.Value) && !m1message2Printed && !m1message1Printed)
+                else if ((newStateName == "M1_c2_b1" || startC2fromB1toM1.Value) && !m1message2Printed && !m1message1Printed)
                 {
                     m1C2fromB1Lights.Value = false;
                     Console.WriteLine("////////////////////////////////////////\n");
                     Console.WriteLine("Please wait...");
                     Console.WriteLine("////////////////////////////////////////");
-                    bool_m1_ini_c_c2 = true;
+                    bool_M1_c2_b1 = true;
                     m1message2Printed = true;
                 }
-                if (roboM1Finished && bool_m1_ini_b)
+                if (roboM1Finished && bool_M1_c2)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_b = false;
+                    bool_M1_c2 = false;
                     m1message1Printed = false;
-                    Console.WriteLine("RoboM1Finished && newStateName = m1_ini_b");
-                    sistemaDeManufaturaSupervisor.On("m1_fim");
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_b");
+                    Console.WriteLine("RoboM1Finished && newStateName = M1_c2");
+                    sistemaDeManufaturaSupervisor.On("M1_fin");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB2toM1;
@@ -1407,13 +1403,13 @@ namespace Controllers.Scenes.SistemaDeManufatura
                         newStateName = "";
                     }
                 }
-                else if (roboM1Finished && bool_m1_ini_c_c2)
+                else if (roboM1Finished && bool_M1_c2_b1)
                 {
                     roboM1.Idle();
-                    bool_m1_ini_c_c2 = false;
+                    bool_M1_c2_b1 = false;
                     m1message2Printed = false;
-                    sistemaDeManufaturaSupervisor.On("m1_fim");
-                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("m1_ini_c_c2");
+                    sistemaDeManufaturaSupervisor.On("M1_fin");
+                    supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2_b1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB1toM1;
@@ -1427,7 +1423,7 @@ namespace Controllers.Scenes.SistemaDeManufatura
                 else if (roboM1Finished)
                 {
                     m1states = M1states.IDLE;
-                    sistemaDeManufaturaSupervisor.On("m1_fim");
+                    sistemaDeManufaturaSupervisor.On("M1_fin");
                 }
             }
 
