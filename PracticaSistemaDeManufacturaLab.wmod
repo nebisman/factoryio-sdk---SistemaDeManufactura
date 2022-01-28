@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Module xmlns="http://waters.sourceforge.net/xsd/module" xmlns:B="http://waters.sourceforge.net/xsd/base" Name="PracticaSist">
+<EventDeclList>
+<EventDecl Kind="PROPOSITION" Name=":accepting"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c1_b1"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="R_ok_c1_b1"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c2_b1"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="R_ok_c2_b1"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c2_b2"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="R_ok_c2_b2"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c3_b3"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="R_ok_c3_b3"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c1_e2"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c2_e2"/>
+<EventDecl Kind="CONTROLLABLE" Name="R_c3_e2"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="R_ok_e2"/>
+<EventDecl Kind="CONTROLLABLE" Name="E1_on"/>
+<EventDecl Kind="CONTROLLABLE" Name="E1_off"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="S_c1"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="S_c2"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="S_c3"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="S_nada"/>
+<EventDecl Kind="CONTROLLABLE" Name="M1_c2"/>
+<EventDecl Kind="CONTROLLABLE" Name="M1_c2_b1"/>
+<EventDecl Kind="CONTROLLABLE" Name="M1_c1"/>
+<EventDecl Kind="CONTROLLABLE" Name="M1_c3"/>
+<EventDecl Kind="UNCONTROLLABLE" Name="M1_fin"/>
+</EventDeclList>
+<ComponentList>
+<SimpleComponent Kind="PLANT" Name="Robot">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="RobotEspera">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="144" Y="192"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="-23" Y="-4"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-110" Y="-13"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Robot_C1B1">
+<PointGeometry>
+<Point X="64" Y="48"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-20" Y="-38"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Robot_C2B1">
+<PointGeometry>
+<Point X="336" Y="80"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-8" Y="-34"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Robot_C2B2">
+<PointGeometry>
+<Point X="384" Y="240"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="32" Y="-9"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Robot_C3B3">
+<PointGeometry>
+<Point X="288" Y="400"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="14" Y="20"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Robot_E2">
+<PointGeometry>
+<Point X="48" Y="352"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-34" Y="28"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="RobotEspera" Target="Robot_C1B1">
+<LabelBlock>
+<SimpleIdentifier Name="R_c1_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-65" Y="-23"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="93" Y="130"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Robot_C1B1" Target="RobotEspera">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c1_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-23" Y="-48"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="116" Y="109"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="RobotEspera" Target="Robot_C2B1">
+<LabelBlock>
+<SimpleIdentifier Name="R_c2_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-30" Y="-27"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="234" Y="115"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Robot_C2B1" Target="RobotEspera">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c2_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="37" Y="-23"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="246" Y="155"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="RobotEspera" Target="Robot_C2B2">
+<LabelBlock>
+<SimpleIdentifier Name="R_c2_b2"/>
+<LabelGeometry Anchor="NW">
+<Point X="23" Y="-12"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="269" Y="201"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Robot_C2B2" Target="RobotEspera">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c2_b2"/>
+</LabelBlock>
+<SplineGeometry>
+<Point X="265" Y="232"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="RobotEspera" Target="Robot_C3B3">
+<LabelBlock>
+<SimpleIdentifier Name="R_c3_b3"/>
+<LabelGeometry Anchor="NW">
+<Point X="33" Y="38"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="231" Y="286"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Robot_C3B3" Target="RobotEspera">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c3_b3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-29" Y="56"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="202" Y="311"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="RobotEspera" Target="Robot_E2">
+<LabelBlock>
+<SimpleIdentifier Name="R_c1_e2"/>
+<SimpleIdentifier Name="R_c2_e2"/>
+<SimpleIdentifier Name="R_c3_e2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-13" Y="21"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="102" Y="284"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Robot_E2" Target="RobotEspera">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_e2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-64" Y="-2"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="80" Y="265"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="PLANT" Name="E1">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="E1_on">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="128" Y="128"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-19" Y="11"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="E1_off">
+<PointGeometry>
+<Point X="288" Y="128"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="E1_on" Target="E1_off">
+<LabelBlock>
+<SimpleIdentifier Name="E1_on"/>
+<LabelGeometry Anchor="NW">
+<Point X="-23" Y="-24"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="208" Y="112"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="E1_off" Target="E1_on">
+<LabelBlock>
+<SimpleIdentifier Name="E1_off"/>
+<LabelGeometry Anchor="NW">
+<Point X="-17" Y="10"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="208" Y="144"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="PLANT" Name="SensorColor">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="SensorColorNoVeNada">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="64" Y="96"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-82" Y="19"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="SensorColorVeAlgo">
+<PointGeometry>
+<Point X="224" Y="96"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-1" Y="11"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="SensorColorNoVeNada" Target="SensorColorVeAlgo">
+<LabelBlock>
+<SimpleIdentifier Name="S_c1"/>
+<SimpleIdentifier Name="S_c2"/>
+<SimpleIdentifier Name="S_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-13" Y="-53"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="144" Y="80"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorColorVeAlgo" Target="SensorColorNoVeNada">
+<LabelBlock>
+<SimpleIdentifier Name="S_nada"/>
+<LabelGeometry Anchor="NW">
+<Point X="-14" Y="16"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="144" Y="112"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="PLANT" Name="M1">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="M1Espera">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="128" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-50" Y="17"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="M1EsperandoPiezaSuperior">
+<PointGeometry>
+<Point X="272" Y="80"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="14" Y="-14"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="M1EnsamblandoPiezaSuperior">
+<PointGeometry>
+<Point X="272" Y="208"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-2" Y="15"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="M1Espera" Target="M1EsperandoPiezaSuperior">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c2"/>
+<SimpleIdentifier Name="M1_c2_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-39" Y="-45"/>
+</LabelGeometry>
+</LabelBlock>
+</Edge>
+<Edge Source="M1EsperandoPiezaSuperior" Target="M1EnsamblandoPiezaSuperior">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c1"/>
+<SimpleIdentifier Name="M1_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="8" Y="-18"/>
+</LabelGeometry>
+</LabelBlock>
+</Edge>
+<Edge Source="M1EnsamblandoPiezaSuperior" Target="M1Espera">
+<LabelBlock>
+<SimpleIdentifier Name="M1_fin"/>
+<LabelGeometry Anchor="NW">
+<Point X="-25" Y="15"/>
+</LabelGeometry>
+</LabelBlock>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="ControlE1">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="EnviandoPiezaASensorColor">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="128" Y="144"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="-35" Y="2"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-97" Y="19"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="PiezaEnSensorColor">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="304" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="EnviandoPiezaASensorColor" Target="PiezaEnSensorColor">
+<LabelBlock>
+<SimpleIdentifier Name="S_c1"/>
+<SimpleIdentifier Name="S_c2"/>
+<SimpleIdentifier Name="S_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-13" Y="-56"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="216" Y="128"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="PiezaEnSensorColor" Target="EnviandoPiezaASensorColor">
+<LabelBlock>
+<SimpleIdentifier Name="S_nada"/>
+</LabelBlock>
+<SplineGeometry>
+<Point X="216" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="EnviandoPiezaASensorColor" Target="EnviandoPiezaASensorColor">
+<LabelBlock>
+<SimpleIdentifier Name="E1_on"/>
+<LabelGeometry Anchor="NW">
+<Point X="-24" Y="-30"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="126" Y="83"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="PiezaEnSensorColor" Target="PiezaEnSensorColor">
+<LabelBlock>
+<SimpleIdentifier Name="E1_off"/>
+<LabelGeometry Anchor="NW">
+<Point X="-8" Y="-35"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="340" Y="93"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="ControlB1">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="B1Vacio">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="256" Y="144"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="-2" Y="-36"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-22" Y="24"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="B1conC1">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="112" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-42" Y="22"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="B1conC2">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="400" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="4" Y="11"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="B1Vacio" Target="B1conC2">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c2_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-44" Y="-26"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="328" Y="128"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="B1conC2" Target="B1Vacio">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c2_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-28" Y="12"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="328" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="B1Vacio" Target="B1conC1">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c1_b1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-40" Y="12"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="184" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="B1conC1" Target="B1Vacio">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-26" Y="-27"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="184" Y="128"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="ControlB2">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="B2Vacio">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="128" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-34" Y="18"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="C2enB2">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="320" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="B2Vacio" Target="C2enB2">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c2_b2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-34" Y="-38"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="224" Y="128"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="C2enB2" Target="B2Vacio">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-14" Y="12"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="224" Y="160"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="ControlB3">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="B3Vacio">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="96" Y="160"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-15" Y="14"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="C3enB3">
+<EventList>
+<SimpleIdentifier Name=":accepting"/>
+</EventList>
+<PointGeometry>
+<Point X="304" Y="160"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="B3Vacio" Target="C3enB3">
+<LabelBlock>
+<SimpleIdentifier Name="R_ok_c3_b3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-32" Y="-32"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="200" Y="144"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="C3enB3" Target="B3Vacio">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c3"/>
+</LabelBlock>
+<SplineGeometry>
+<Point X="200" Y="176"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="SentidoDeJusticiaLab">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="Estado0">
+<PointGeometry>
+<Point X="240" Y="144"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="1" Y="-21"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-24" Y="32"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Estado1">
+<PointGeometry>
+<Point X="112" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-62" Y="18"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="Estado2">
+<PointGeometry>
+<Point X="384" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-4" Y="17"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="Estado0" Target="Estado2">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-12" Y="-35"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="312" Y="128"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Estado2" Target="Estado0">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-14" Y="-18"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="312" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Estado0" Target="Estado1">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-19" Y="-20"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="176" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="Estado1" Target="Estado0">
+<LabelBlock>
+<SimpleIdentifier Name="M1_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-19" Y="-29"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="176" Y="128"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="RobotSoloTrabajaConE1Apagado">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="E1_Off">
+<PointGeometry>
+<Point X="176" Y="144"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="-27" Y="-2"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-34" Y="17"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="E1_On">
+<PointGeometry>
+<Point X="384" Y="144"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="E1_Off" Target="E1_On">
+<LabelBlock>
+<SimpleIdentifier Name="E1_on"/>
+<LabelGeometry Anchor="NW">
+<Point X="-16" Y="-31"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="280" Y="128"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="E1_On" Target="E1_Off">
+<LabelBlock>
+<SimpleIdentifier Name="E1_off"/>
+<LabelGeometry Anchor="NW">
+<Point X="-15" Y="-17"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="280" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="E1_Off" Target="E1_Off">
+<LabelBlock>
+<SimpleIdentifier Name="R_c1_b1"/>
+<SimpleIdentifier Name="R_c2_b1"/>
+<SimpleIdentifier Name="R_c2_b2"/>
+<SimpleIdentifier Name="R_c3_b3"/>
+<SimpleIdentifier Name="R_c1_e2"/>
+<SimpleIdentifier Name="R_c2_e2"/>
+<SimpleIdentifier Name="R_c3_e2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-76" Y="-44"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="158" Y="72"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+<SimpleComponent Kind="SPEC" Name="DestinoPiezasSegunColor">
+<Graph>
+<NodeList>
+<SimpleNode Initial="true" Name="SensorNoVeNada">
+<PointGeometry>
+<Point X="160" Y="176"/>
+</PointGeometry>
+<InitialArrowGeometry>
+<Point X="-24" Y="0"/>
+</InitialArrowGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-132" Y="-8"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="SensorVioC1">
+<PointGeometry>
+<Point X="160" Y="64"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-9" Y="-36"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="SensorVioC2">
+<PointGeometry>
+<Point X="320" Y="176"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="-1" Y="11"/>
+</LabelGeometry>
+</SimpleNode>
+<SimpleNode Name="SensorVioC3">
+<PointGeometry>
+<Point X="160" Y="288"/>
+</PointGeometry>
+<LabelGeometry Anchor="NW">
+<Point X="0" Y="10"/>
+</LabelGeometry>
+</SimpleNode>
+</NodeList>
+<EdgeList>
+<Edge Source="SensorNoVeNada" Target="SensorVioC1">
+<LabelBlock>
+<SimpleIdentifier Name="S_c1"/>
+<LabelGeometry Anchor="NW">
+<Point X="-35" Y="-34"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="144" Y="120"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorVioC1" Target="SensorNoVeNada">
+<LabelBlock>
+<SimpleIdentifier Name="R_c1_b1"/>
+<SimpleIdentifier Name="R_c1_e2"/>
+<SimpleIdentifier Name="S_nada"/>
+<LabelGeometry Anchor="NW">
+<Point X="2" Y="-31"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="176" Y="120"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorNoVeNada" Target="SensorVioC2">
+<LabelBlock>
+<SimpleIdentifier Name="S_c2"/>
+<LabelGeometry Anchor="NW">
+<Point X="-16" Y="-21"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="240" Y="160"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorVioC2" Target="SensorNoVeNada">
+<LabelBlock>
+<SimpleIdentifier Name="R_c2_b1"/>
+<SimpleIdentifier Name="R_c2_b2"/>
+<SimpleIdentifier Name="R_c2_e2"/>
+<SimpleIdentifier Name="S_nada"/>
+<LabelGeometry Anchor="NW">
+<Point X="-17" Y="10"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="240" Y="192"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorNoVeNada" Target="SensorVioC3">
+<LabelBlock>
+<SimpleIdentifier Name="S_c3"/>
+<LabelGeometry Anchor="NW">
+<Point X="-2" Y="-10"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="176" Y="232"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorVioC3" Target="SensorNoVeNada">
+<LabelBlock>
+<SimpleIdentifier Name="R_c3_b3"/>
+<SimpleIdentifier Name="R_c3_e2"/>
+<SimpleIdentifier Name="S_nada"/>
+<LabelGeometry Anchor="NW">
+<Point X="-55" Y="-8"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="144" Y="232"/>
+</SplineGeometry>
+</Edge>
+<Edge Source="SensorNoVeNada" Target="SensorNoVeNada">
+<LabelBlock>
+<SimpleIdentifier Name="S_nada"/>
+<LabelGeometry Anchor="NW">
+<Point X="-25" Y="-46"/>
+</LabelGeometry>
+</LabelBlock>
+<SplineGeometry>
+<Point X="83" Y="171"/>
+</SplineGeometry>
+</Edge>
+</EdgeList>
+</Graph>
+</SimpleComponent>
+</ComponentList>
+</Module>
