@@ -63,13 +63,16 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit sensorStartE2;
         readonly RTRIG rtSensorStartE2;
         readonly MemoryFloat conveyorStartE2;
-        readonly MemoryBit conveyorFirstCornerE2;
+        readonly MemoryFloat conveyorPostStartE2;
+        readonly MemoryFloat conveyorFirstCornerE2;
         readonly MemoryFloat conveyorMiddleE2;
-        readonly MemoryBit conveyorSecondCornerE2;
+        readonly MemoryFloat conveyorSecondCornerE2;
         readonly MemoryFloat conveyorPreEndE2;
+        readonly MemoryFloat conveyorPrePreEndE2;
         readonly MemoryFloat conveyorEndE2;
-        readonly MemoryBit sensorEndE2;
-        readonly FTRIG ftSensorEndE2;
+        readonly MemoryBit sensorPreEndE2;
+        readonly FTRIG ftSensorPreEndE2;
+        readonly RTRIG rtSensorPreEndE2;
         readonly MemoryBit sensorSecondSpotE2;
         readonly MemoryBit sensorThirdSpotE2;
         readonly MemoryBit sensorFourthSpotE2;
@@ -118,7 +121,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
         private enum E2BeforeBuffer
         {
             IDLE,
-            WAITING,
+            TURN_OFF_CONVEYORS,
             TAKING_PIECES_TO_BUFFER
         }
         E2BeforeBuffer e2BeforeBuffer;
@@ -256,14 +259,17 @@ namespace Controllers.Scenes.SistemaDeManufactura
             rtSensorStartE2 = new RTRIG();
             conveyorStartE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (6m) 0 (V)", MemoryType.Output);
             conveyorStartE2.Value = 0;
-            conveyorFirstCornerE2 = MemoryMap.Instance.GetBit("Curved Belt Conveyor 0 CW", MemoryType.Output);
+            conveyorPostStartE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (4m) 5 (V)", MemoryType.Output);
+            conveyorFirstCornerE2 = MemoryMap.Instance.GetFloat("Curved Belt Conveyor 0 (V)", MemoryType.Output);
             conveyorMiddleE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (4m) 0 (V)", MemoryType.Output);
-            conveyorSecondCornerE2 = MemoryMap.Instance.GetBit("Curved Belt Conveyor 1 CW", MemoryType.Output);
+            conveyorSecondCornerE2 = MemoryMap.Instance.GetFloat("Curved Belt Conveyor 1 (V)", MemoryType.Output);
+            conveyorPrePreEndE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (4m) 3 (V)", MemoryType.Output);
             conveyorPreEndE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (4m) 4 (V)", MemoryType.Output);
             conveyorEndE2 = MemoryMap.Instance.GetFloat("Belt Conveyor (4m) 1 (V)", MemoryType.Output);
             bufferE2 = BufferE2.ZERO;
-            sensorEndE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 2", MemoryType.Input);
-            ftSensorEndE2 = new FTRIG();
+            sensorPreEndE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 2", MemoryType.Input);
+            ftSensorPreEndE2 = new FTRIG();
+            rtSensorPreEndE2 = new RTRIG();
             sensorSecondSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 12", MemoryType.Input);
             sensorThirdSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 13", MemoryType.Input);
             sensorFourthSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 14", MemoryType.Input);
@@ -511,7 +517,8 @@ namespace Controllers.Scenes.SistemaDeManufactura
             //%%%%%%%%%%%%%%%%%%%% ESTEIRA START %%%%%%%%%%%%%%%%%%%%
 
             rtSensorStartE2.CLK(sensorStartE2.Value);
-            ftSensorEndE2.CLK(sensorEndE2.Value);
+            rtSensorPreEndE2.CLK(sensorPreEndE2.Value);
+            ftSensorPreEndE2.CLK(sensorPreEndE2.Value);
             ftAfterBlade.CLK(sensorAfterBlade.Value);
             rtAfterBlade.CLK(sensorAfterBlade.Value);
             ftAtRobotArm.CLK(sensorAtRobotArm.Value);
@@ -596,12 +603,12 @@ namespace Controllers.Scenes.SistemaDeManufactura
             }
             else if (e1ConveyorState == E1ConveyorState.REACHED_ROBO0)
             {
-                if (!sensorEndE1.Value && !sensorEndE2.Value)
+                if (!sensorEndE1.Value && !sensorPreEndE2.Value)
                 {
                     Console.WriteLine("Emitting new piece");
                     e1ConveyorState = E1ConveyorState.EMITTING;
                 }
-                else if (!sensorEndE1.Value && sensorEndE2.Value)
+                else if (!sensorEndE1.Value && sensorPreEndE2.Value)
                 {
                     Console.WriteLine("using arm");
                     e1ConveyorState = E1ConveyorState.E2_TO_E1;
@@ -758,11 +765,11 @@ namespace Controllers.Scenes.SistemaDeManufactura
             }
             else if (bufferE2 == BufferE2.ONE)
             {
-                if (ftAtRobotArm.Q == true)//Robot arm takes piece from E2 to E1
+                if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
                     bufferE2 = BufferE2.ZERO;
                 }
-                else if (rtSensorStartE2.Q == true)//Piece arrives to E2
+                else if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
                     e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.TWO;
@@ -772,44 +779,38 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 {
                     e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
                     e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
-                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                 }
 
-                if (bufferE2LoadingStage == BufferE2LoadingStage.SEPARATE_PIECES)//Piece arrives to stopblade
+                if (rtSensorPreEndE2.Q)//Piece arrives to stopblade
                 {
-                    e2BeforeBuffer = E2BeforeBuffer.IDLE;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                 }
             }
             else if (bufferE2 == BufferE2.TWO)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.THREE;
                 }
-                else if (ftAtRobotArm.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    //conveyorEndE2.Value = 1;
-                    //conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.ONE;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                 }
                 else if (rtBeforeBuffer.Q)
                 {
-                    //bufferE2LoadingStage = BufferE2LoadingStage.TAKING_ARRIVALS_TO_STOPBLADE;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
                 }
-                else if (sensorEndE2 .Value && sensorSecondSpotE2.Value && !sensorThirdSpotE2.Value && !sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && !sensorSecondSpotE2.Value && (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.IDLE;
                 }
             }
             else if (bufferE2 == BufferE2.THREE)
@@ -817,25 +818,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.FOUR;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.TWO;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && !sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && !sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -845,25 +846,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.FIVE;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.THREE;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -873,25 +874,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.SIX;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.FOUR;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -901,25 +902,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.SEVEN;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.FIVE;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -929,25 +930,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.EIGHT;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.SIX;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -957,25 +958,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.NINE;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.SEVEN;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -985,25 +986,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.TEN;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.EIGHT;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -1013,25 +1014,25 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.ELEVEN;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.NINE;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -1041,43 +1042,43 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 if (rtSensorStartE2.Q == true)
                 {
                     conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
+                    conveyorFirstCornerE2.Value = 0.5f;
                     conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
+                    conveyorSecondCornerE2.Value = 0.5f;
                     conveyorPreEndE2.Value = 0.5f;
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.TWELVE;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.TEN;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
             }
             else if (bufferE2 == BufferE2.TWELVE)
             {
-                if (ftSensorEndE2.Q == true)
+                if (ftSensorPreEndE2.Q == true)
                 {
                     conveyorEndE2.Value = 1;
                     conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.ELEVEN;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
+                    conveyorFirstCornerE2.Value = 0;
                     conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
+                    conveyorSecondCornerE2.Value = 0;
                     conveyorPreEndE2.Value = 0;
                     conveyorEndE2.Value = 0;
                 }
@@ -1085,17 +1086,17 @@ namespace Controllers.Scenes.SistemaDeManufactura
 
             if (e2BeforeBuffer == E2BeforeBuffer.TAKING_PIECES_TO_BUFFER)
             {
-                conveyorMiddleE2.Value = 1.0f;
-                conveyorSecondCornerE2.Value = true;
+                conveyorPrePreEndE2.Value = 1.0f;
                 conveyorPreEndE2.Value = 1.0f;
             }
-            else if (e2BeforeBuffer == E2BeforeBuffer.WAITING)
+            else if (e2BeforeBuffer == E2BeforeBuffer.TURN_OFF_CONVEYORS)
             {
-                conveyorMiddleE2.Value = 0;
+                conveyorPrePreEndE2.Value = 0;
+                conveyorPreEndE2.Value = 0;
+                e2BeforeBuffer = E2BeforeBuffer.IDLE;
             }
             else if (e2BeforeBuffer == E2BeforeBuffer.IDLE)
             {
-                conveyorSecondCornerE2.Value = false;
             }
 
             //%%%%%%%%%%%%%%%%%%%% ESTEIRA ENDS %%%%%%%%%%%%%%%%%%%%
@@ -1673,15 +1674,24 @@ namespace Controllers.Scenes.SistemaDeManufactura
             {
                 //conveyorStartE2.Value = 0.5f;
                 conveyorStartE2.Value = 4.0f;
-                conveyorFirstCornerE2.Value = true;
-                //conveyorMiddleE2.Value = 1;
+                //conveyorPostStartE2.Value = 0.5f;
+                conveyorPostStartE2.Value = 4.0f;
+                //conveyorFirstCornerE2.Value = 0.5f;
+                conveyorFirstCornerE2.Value = -4.0f;
+                //conveyorMiddleE2.Value = 0.5f;
                 conveyorMiddleE2.Value = 4.0f;
+                //conveyorSecondCornerE2.Value = 0.5f;
+                conveyorSecondCornerE2.Value = -4.0f;
+                conveyorPrePreEndE2.Value = 1.0f;
             }
             else if (e2ConveyorsOnOff == E2ConveyorsOnOff.CONVEYORS_OFF)
             {
                 conveyorStartE2.Value = 0;
-                conveyorFirstCornerE2.Value = false;
+                conveyorPostStartE2.Value = 0;
+                conveyorFirstCornerE2.Value = 0;
                 conveyorMiddleE2.Value = 0;
+                conveyorSecondCornerE2.Value = 0;
+                conveyorPrePreEndE2.Value = 0;
             }
         }
     }
