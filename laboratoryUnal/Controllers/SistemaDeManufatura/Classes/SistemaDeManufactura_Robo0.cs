@@ -29,7 +29,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit robo0Grabbed;
         readonly MemoryBit robo0RotatePiece;
         float highestYinSearch;
-        float searchingForPieceYvalue;
         float pieceFoundYcoordinates;
         readonly MemoryBit stopbladeEndE1;
         readonly SistemaDeManufacturaSupervisor sistemaDeManufaturaSupervisor;
@@ -60,7 +59,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
             if (robo0Steps == RoboSteps.IDLE)
             {
                 highestYinSearch = 13.0f;
-                searchingForPieceYvalue = 0.0f;
                 robo0Steps = RoboSteps.DOWN_FOR_PIECE;
             }
             else if (robo0Steps == RoboSteps.DOWN_FOR_PIECE)
@@ -176,7 +174,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
             if (robo0Steps == RoboSteps.IDLE)
             {
                 highestYinSearch = 13.0f;
-                searchingForPieceYvalue = 0.0f;
                 robo0Steps = RoboSteps.DOWN_FOR_PIECE;
             }
             else if (robo0Steps == RoboSteps.DOWN_FOR_PIECE)
@@ -284,7 +281,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
             if (robo0Steps == RoboSteps.IDLE)
             {
                 highestYinSearch = 13.0f;
-                searchingForPieceYvalue = 0.0f;
                 robo0Steps = RoboSteps.DOWN_FOR_PIECE;
             }
             else if (robo0Steps == RoboSteps.DOWN_FOR_PIECE)
@@ -392,7 +388,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
             if (robo0Steps == RoboSteps.IDLE)
             {
                 highestYinSearch = 13.0f;
-                searchingForPieceYvalue = 0.0f;
                 robo0Steps = RoboSteps.DOWN_FOR_PIECE;
             }
             else if (robo0Steps == RoboSteps.DOWN_FOR_PIECE)

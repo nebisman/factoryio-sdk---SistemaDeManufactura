@@ -6,6 +6,10 @@ namespace Controllers.Scenes.SistemaDeManufactura
 {
     public class SistemaDeManufactura : Controller
     {
+        //Automatic or manual
+        readonly MemoryBit manual;
+        readonly MemoryBit automatic;
+
         //READER
         string newState;
         string newStateName;
@@ -77,6 +81,14 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit sensorTenthSpotE2;
         readonly MemoryBit sensorEleventhSpotE2;
         readonly MemoryBit sensorTwelvethSpotE2;
+        readonly MemoryBit sensorAfterBlade;
+        readonly MemoryBit sensorAtRobotArm;
+        readonly MemoryBit sensorBeforeBuffer;
+        readonly RTRIG rtBeforeBuffer;
+        readonly FTRIG ftAfterBlade;
+        readonly RTRIG rtAfterBlade;
+        readonly FTRIG ftAtRobotArm;
+        readonly MemoryBit E2Stopblade;
         private enum BufferE2
         {
             ZERO,
@@ -94,6 +106,28 @@ namespace Controllers.Scenes.SistemaDeManufactura
             TWELVE
         }
         BufferE2 bufferE2;
+        private enum BufferE2LoadingStage
+        {
+            IDLE,
+            START_LOADING,
+            SEPARATE_PIECES,
+            REACHING_ROBOT_ARM
+        }
+        BufferE2LoadingStage bufferE2LoadingStage;
+
+        private enum E2BeforeBuffer
+        {
+            IDLE,
+            WAITING,
+            TAKING_PIECES_TO_BUFFER
+        }
+        E2BeforeBuffer e2BeforeBuffer;
+        private enum E2ConveyorsOnOff
+        {
+            CONVEYORS_OFF,
+            CONVEYORS_ON
+        }
+        E2ConveyorsOnOff e2ConveyorsOnOff;
         //GripperArm
         readonly MemoryFloat armX;
         readonly MemoryFloat armXpos;
@@ -149,7 +183,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit m1C2fromB1Lights;
         readonly MemoryBit m1C2fromB2Lights;
         readonly MemoryBit m1C3fromB3Lights;
-        
         int m1Counter;
         bool roboM1Finished;
         bool bool_M1_c3;
@@ -158,6 +191,8 @@ namespace Controllers.Scenes.SistemaDeManufactura
         bool bool_M1_c2_b1;
         bool m1message1Printed;
         bool m1message2Printed;
+        FTRIG ftAtM1end;
+        
         private enum M1states
         {
             IDLE,
@@ -175,6 +210,9 @@ namespace Controllers.Scenes.SistemaDeManufactura
         bool colorMessage2;
         public SistemaDeManufactura()
         {
+            //automatic or manual
+            manual = MemoryMap.Instance.GetBit("0: Manual", MemoryType.Input);
+            automatic = MemoryMap.Instance.GetBit("1: Automatic", MemoryType.Input);
 
             //READER
             newState = "";
@@ -210,6 +248,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
             //Emitter Remover
             emitter = MemoryMap.Instance.GetBit("Emitter 0 (Emit)", MemoryType.Output);
             remover = MemoryMap.Instance.GetBit("Remover 0 (Remove)", MemoryType.Output);
+            remover.Value = true;
             sensorEmitter = MemoryMap.Instance.GetBit("Diffuse Sensor 11", MemoryType.Input);
 
             //E2
@@ -236,6 +275,17 @@ namespace Controllers.Scenes.SistemaDeManufactura
             sensorTenthSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 21", MemoryType.Input);
             sensorEleventhSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 18", MemoryType.Input);
             sensorTwelvethSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 20", MemoryType.Input);
+            sensorAfterBlade = MemoryMap.Instance.GetBit("Diffuse Sensor 23", MemoryType.Input);
+            sensorAtRobotArm = MemoryMap.Instance.GetBit("Diffuse Sensor 24", MemoryType.Input);
+            sensorBeforeBuffer = MemoryMap.Instance.GetBit("Diffuse Sensor 25", MemoryType.Input);
+            rtBeforeBuffer = new RTRIG();
+            ftAfterBlade = new FTRIG();
+            rtAfterBlade = new RTRIG();
+            ftAtRobotArm = new FTRIG();
+            E2Stopblade = MemoryMap.Instance.GetBit("Stop Blade 5", MemoryType.Output);
+            bufferE2LoadingStage = BufferE2LoadingStage.IDLE;
+            e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+            e2BeforeBuffer = E2BeforeBuffer.IDLE;
 
             //GripperArm
             armX = MemoryMap.Instance.GetFloat("Two-Axis Pick & Place 0 X Set Point (V)", MemoryType.Output);
@@ -282,7 +332,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 MemoryMap.Instance.GetBit("Pick & Place 0 (Grab)", MemoryType.Output),
                 MemoryMap.Instance.GetBit("Pick & Place 0 (Box Detected)", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Pick & Place 0 C(+)", MemoryType.Output),
-                stopbladeEndE1,sistemaDeManufaturaSupervisor);
+                stopbladeEndE1, sistemaDeManufaturaSupervisor);
 
             //M1
             startC2fromB2toM1 = MemoryMap.Instance.GetBit("C2fromB2toM1", MemoryType.Input);
@@ -307,15 +357,15 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 MemoryMap.Instance.GetBit("Belt Conveyor (2m) 5", MemoryType.Output),
                 MemoryMap.Instance.GetBit("Belt Conveyor (2m) 4", MemoryType.Output),
                 MemoryMap.Instance.GetBit("Belt Conveyor (2m) 3", MemoryType.Output),
-                MemoryMap.Instance.GetBit("Belt Conveyor (4m) 3", MemoryType.Output),
+                MemoryMap.Instance.GetBit("Belt Conveyor (2m) 0", MemoryType.Output),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 4", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 5", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 6", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 9", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 8", MemoryType.Input),
                 MemoryMap.Instance.GetBit("Diffuse Sensor 7", MemoryType.Input),
-                sensorM1end,
-                startC1fromB1toM1, startC2fromB1toM1, startC2fromB2toM1, startC3fromB3toM1);
+                sensorM1end
+                );
             m1Counter = 0;
             roboM1Finished = false;
             bool_M1_c3 = false;
@@ -324,6 +374,8 @@ namespace Controllers.Scenes.SistemaDeManufactura
             bool_M1_c2_b1 = false;
             m1message1Printed = false;
             m1message2Printed = false;
+            ftAtM1end = new FTRIG();
+
 
             //Messages only once
             initialMessage = true;
@@ -344,131 +396,171 @@ namespace Controllers.Scenes.SistemaDeManufactura
             }
 
             //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BUTTON LIGHTS START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            //E1
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_on"))
-                conveyorE1StartLight.Value = true;
-            else
-                conveyorE1StartLight.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_off"))
-                conveyorE1StopLight.Value = true;
-            else
-                conveyorE1StopLight.Value = false;
-
-            //Rôbo
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_b1"))
-                roboC1toB1Lights.Value = true;
-            else
-                roboC1toB1Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b1"))
-                roboC2toB1Lights.Value = true;
-            else
-                roboC2toB1Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b2"))
-                roboC2toB2Lights.Value = true;
-            else
-                roboC2toB2Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_b3"))
-                roboC3toB3Lights.Value = true;
-            else
-                roboC3toB3Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_e2"))
-                roboC1toE2Lights.Value = true;
-            else
-                roboC1toE2Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_e2"))
-                roboC2toE2Lights.Value = true;
-            else
-                roboC2toE2Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_e2"))
-                roboC3toE2Lights.Value = true;
-            else
-                roboC3toE2Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2") && !m1message1Printed && !m1message2Printed)
-                m1C2fromB2Lights.Value = true;
-            else
-                m1C2fromB2Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2_b1") && !m1message1Printed && !m1message2Printed)
-                m1C2fromB1Lights.Value = true;
-            else
-                m1C2fromB1Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c3") && !m1message1Printed && !m1message2Printed)
-                m1C3fromB3Lights.Value = true;
-            else
-                m1C3fromB3Lights.Value = false;
-
-            if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c1") && !m1message1Printed && !m1message2Printed)
-                m1C1fromB1Lights.Value = true;
-            else
-                m1C1fromB1Lights.Value = false;
-
-            //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BUTTON LIGHTS END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            // Keyboard input:
-            try
             {
-                if (!changeStateMessagePrinted)
+                //E1
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_on"))
+                    conveyorE1StartLight.Value = true;
+                else
+                    conveyorE1StartLight.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("E1_off"))
+                    conveyorE1StopLight.Value = true;
+                else
+                    conveyorE1StopLight.Value = false;
+
+                //Rôbo
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_b1"))
+                    roboC1toB1Lights.Value = true;
+                else
+                    roboC1toB1Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b1"))
+                    roboC2toB1Lights.Value = true;
+                else
+                    roboC2toB1Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_b2"))
+                    roboC2toB2Lights.Value = true;
+                else
+                    roboC2toB2Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_b3"))
+                    roboC3toB3Lights.Value = true;
+                else
+                    roboC3toB3Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c1_e2"))
+                    roboC1toE2Lights.Value = true;
+                else
+                    roboC1toE2Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c2_e2"))
+                    roboC2toE2Lights.Value = true;
+                else
+                    roboC2toE2Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("R_c3_e2"))
+                    roboC3toE2Lights.Value = true;
+                else
+                    roboC3toE2Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2") && !m1message1Printed && !m1message2Printed)
+                    m1C2fromB2Lights.Value = true;
+                else
+                    m1C2fromB2Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c2_b1") && !m1message1Printed && !m1message2Printed)
+                    m1C2fromB1Lights.Value = true;
+                else
+                    m1C2fromB1Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c3") && !m1message1Printed && !m1message2Printed)
+                    m1C3fromB3Lights.Value = true;
+                else
+                    m1C3fromB3Lights.Value = false;
+
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsLights("M1_c1") && !m1message1Printed && !m1message2Printed)
+                    m1C1fromB1Lights.Value = true;
+                else
+                    m1C1fromB1Lights.Value = false;
+            }
+            //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BUTTON LIGHTS END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% KEYBOARD INPUT START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            {
+                if (manual.Value)
                 {
-                    changeStateMessagePrinted = true;
-                }
-                newStateName = "";
-                newState = Reader.ReadLine(5);
-                try
-                {
-                    newStateName = sistemaDeManufaturaSupervisor.StateName(int.Parse(newState));
-                    if (newStateName != "Event number pressed does not exist")
+                    try
                     {
-                        if (!sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)))
+                        if (!changeStateMessagePrinted)
+                        {
+                            changeStateMessagePrinted = true;
+                        }
+                        newStateName = "";
+                        newState = Reader.ReadLine(5);
+                        try
+                        {
+                            newStateName = sistemaDeManufaturaSupervisor.StateName(int.Parse(newState));
+                            if (newStateName != "Event number pressed does not exist")
+                            {
+                                if (!sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)))
+                                {
+                                    Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+                                    Console.WriteLine("\nEvent " + newState + " is not in active events. Try again.\n");
+                                    Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+                                    sistemaDeManufaturaSupervisor.ListOfActiveEvents();
+                                }
+                            }
+                        }
+                        catch
                         {
                             Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-                            Console.WriteLine("\nEvent " + newState + " is not in active events. Try again.\n");
+                            Console.WriteLine("\nSorry, please insert a number.\n");
                             Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
                             sistemaDeManufaturaSupervisor.ListOfActiveEvents();
                         }
+                        changeStateMessagePrinted = false;
+                    }
+                    catch (TimeoutException)
+                    {
                     }
                 }
-                catch
-                {
-                    Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-                    Console.WriteLine("\nSorry, please insert a number.\n");
-                    Console.WriteLine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-                    sistemaDeManufaturaSupervisor.ListOfActiveEvents();
-                }
-                changeStateMessagePrinted = false;
             }
-            catch (TimeoutException)
-            {
-            }
+            //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% KEYBOARD INPUT END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             //%%%%%%%%%%%%%%%%%%%% ESTEIRA START %%%%%%%%%%%%%%%%%%%%
 
             rtSensorStartE2.CLK(sensorStartE2.Value);
             ftSensorEndE2.CLK(sensorEndE2.Value);
+            ftAfterBlade.CLK(sensorAfterBlade.Value);
+            rtAfterBlade.CLK(sensorAfterBlade.Value);
+            ftAtRobotArm.CLK(sensorAtRobotArm.Value);
+            rtBeforeBuffer.CLK(sensorBeforeBuffer.Value);
 
-            //E1
-            if (conveyorE1Start.Value || (newStateName == "E1_on" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            if (manual.Value)
             {
-                if (e1Counter == 0)
+                //E1
+                if (conveyorE1Start.Value || (newStateName == "E1_on" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (e1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_on");
+                        if (supervisoryApproval)
+                        {
+                            conveyorE1.Value = true;
+                            e1Counter++;
+                        }
+                    }
+                }
+                else if (!conveyorE1Stop.Value || (newStateName == "E1_off" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (e1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_off");
+                        if (supervisoryApproval)
+                        {
+                            conveyorE1.Value = false;
+                            e1Counter++;
+                        }
+                    }
+                }
+                else
+                {
+                    e1Counter = 0;
+                }
+            }
+            else if (automatic.Value)
+            {
+                //E1 auto
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("E1_on"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_on");
                     if (supervisoryApproval)
                     {
                         conveyorE1.Value = true;
-                        e1Counter++;
                     }
                 }
-            }
-            else if (!conveyorE1Stop.Value || (newStateName == "E1_off" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {   if (e1Counter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("E1_off"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("E1_off");
                     if (supervisoryApproval)
@@ -477,10 +569,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                         e1Counter++;
                     }
                 }
-            }
-            else
-            {
-                e1Counter = 0;
             }
 
             if (e1ConveyorState == E1ConveyorState.EMITTING)
@@ -612,7 +700,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     if (armZpos.Value < 5.6f)
                     {
                         e2toE1Steps = E2toE1Steps.UNROTATE_FIRST_HALF;
-                        rotationBool = false;                    
+                        rotationBool = false;
                     }
                 }
                 else if (e2toE1Steps == E2toE1Steps.UNROTATE_FIRST_HALF)
@@ -657,49 +745,39 @@ namespace Controllers.Scenes.SistemaDeManufactura
 
             //E2
 
+            E2Loader();
+            E2conveyors();
+
             if (bufferE2 == BufferE2.ZERO)
             {
-                conveyorStartE2.Value = 0;
-                conveyorFirstCornerE2.Value = false;
-                conveyorMiddleE2.Value = 0;
-                conveyorSecondCornerE2.Value = false;
-                conveyorPreEndE2.Value = 0;
-                conveyorEndE2.Value = 0;
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
-                    conveyorMiddleE2.Value = 1;
-                    conveyorSecondCornerE2.Value = true;
-                    conveyorPreEndE2.Value = 1;
-                    conveyorEndE2.Value = 1;
                     bufferE2 = BufferE2.ONE;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                 }
             }
             else if (bufferE2 == BufferE2.ONE)
             {
-                if (ftSensorEndE2.Q == true)
+                if (ftAtRobotArm.Q == true)//Robot arm takes piece from E2 to E1
                 {
                     bufferE2 = BufferE2.ZERO;
                 }
-                else if (rtSensorStartE2.Q == true)
+                else if (rtSensorStartE2.Q == true)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = true;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = true;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.TWO;
                 }
-                else if (sensorEndE2.Value)
+
+                if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = false;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = false;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+
+                if (bufferE2LoadingStage == BufferE2LoadingStage.SEPARATE_PIECES)//Piece arrives to stopblade
+                {
+                    e2BeforeBuffer = E2BeforeBuffer.IDLE;
                 }
             }
             else if (bufferE2 == BufferE2.TWO)
@@ -714,13 +792,17 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     conveyorEndE2.Value = 0.5f;
                     bufferE2 = BufferE2.THREE;
                 }
-                else if (ftSensorEndE2.Q == true)
+                else if (ftAtRobotArm.Q == true)
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    //conveyorEndE2.Value = 1;
+                    //conveyorPreEndE2.Value = 1;
                     bufferE2 = BufferE2.ONE;
                 }
-                else if (sensorEndE2.Value && sensorSecondSpotE2.Value && !sensorThirdSpotE2.Value && !sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)
+                {
+                    //bufferE2LoadingStage = BufferE2LoadingStage.TAKING_ARRIVALS_TO_STOPBLADE;
+                }
+                else if (sensorEndE2 .Value && sensorSecondSpotE2.Value && !sensorThirdSpotE2.Value && !sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
                 {
                     conveyorStartE2.Value = 0;
                     conveyorFirstCornerE2.Value = false;
@@ -1001,98 +1083,178 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 }
             }
 
+            if (e2BeforeBuffer == E2BeforeBuffer.TAKING_PIECES_TO_BUFFER)
+            {
+                conveyorMiddleE2.Value = 1.0f;
+                conveyorSecondCornerE2.Value = true;
+                conveyorPreEndE2.Value = 1.0f;
+            }
+            else if (e2BeforeBuffer == E2BeforeBuffer.WAITING)
+            {
+                conveyorMiddleE2.Value = 0;
+            }
+            else if (e2BeforeBuffer == E2BeforeBuffer.IDLE)
+            {
+                conveyorSecondCornerE2.Value = false;
+            }
+
             //%%%%%%%%%%%%%%%%%%%% ESTEIRA ENDS %%%%%%%%%%%%%%%%%%%%
 
             //%%%%%%%%%%%%%%%%%%%% ROBÔ STARTS %%%%%%%%%%%%%%%%%%%%
-            if (startC1toE2.Value || (newStateName == "R_c1_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+            { 
+            if (manual.Value)
             {
-                if (roboCounter == 0)
+                if (startC1toE2.Value || (newStateName == "R_c1_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_e2");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toE2;
+                            roboCounter++;
+                        }
+                    }
+                }
+                else if (startC2toE2.Value || (newStateName == "R_c2_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_e2");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toE2;
+                            roboCounter++;
+                        }
+                    }
+                }
+                else if (startC3toE2.Value || (newStateName == "R_c3_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_e2");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toE2;
+                            roboCounter++;
+                        }
+                    }
+                }
+                else if (startC1toB1.Value || (newStateName == "R_c1_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_b1");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toB1;
+                            roboCounter++;
+                            color = "c1";
+                        }
+                    }
+                }
+                else if (startC2toB1.Value || (newStateName == "R_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b1");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toB1;
+                            roboCounter++;
+                            color = "c2";
+                        }
+                    }
+                }
+                else if (startC2toB2.Value || (newStateName == "R_c2_b2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b2");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toB2;
+                            roboCounter++;
+                        }
+                    }
+                }
+                else if (startC3toB3.Value || (newStateName == "R_c3_b3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
+                {
+                    if (roboCounter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_b3");
+                        if (supervisoryApproval)
+                        {
+                            robo0State = Robo0State.E1toB3;
+                            roboCounter++;
+                        }
+                    }
+                }
+                else
+                {
+                    roboCounter = 0;
+                }
+            }
+            else if (automatic.Value)//Automatic
+            {
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c1_e2"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
-                        roboCounter++;
                     }
                 }
-            }
-            else if (startC2toE2.Value || (newStateName == "R_c2_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c2_e2"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
-                        roboCounter++;
                     }
                 }
-            }
-            else if (startC3toE2.Value || (newStateName == "R_c3_e2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c3_e2"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_e2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toE2;
-                        roboCounter++;
                     }
                 }
-            }
-            else if (startC1toB1.Value || (newStateName == "R_c1_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c1_b1"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c1_b1");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB1;
-                        roboCounter++;
                         color = "c1";
                     }
                 }
-            }
-            else if (startC2toB1.Value || (newStateName == "R_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c2_b1"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b1");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB1;
-                        roboCounter++;
                         color = "c2";
                     }
                 }
-            }
-            else if (startC2toB2.Value || (newStateName == "R_c2_b2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c2_b2"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c2_b2");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB2;
-                        roboCounter++;
                     }
                 }
-            }
-            else if (startC3toB3.Value || (newStateName == "R_c3_b3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState))))
-            {
-                if (roboCounter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("R_c3_b3"))
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("R_c3_b3");
                     if (supervisoryApproval)
                     {
                         robo0State = Robo0State.E1toB3;
-                        roboCounter++;
                     }
                 }
-            }
-            else
-            {
-                roboCounter = 0;
             }
 
             if (robo0State == Robo0State.E1toE2)
@@ -1131,11 +1293,11 @@ namespace Controllers.Scenes.SistemaDeManufactura
             {
                 robo0.Idle();
             }
-
+            }
             //%%%%%%%%%%%%%%%%%%%% ROBÔ ENDS %%%%%%%%%%%%%%%%%%%%
 
             //%%%%%%%%%%%%%%%%%%%% COLOR SENSOR STARTS %%%%%%%%%%%%%%%%%%%%
-
+            { 
             if (sensorColor.Value == 5)
             {
                 if (colorMessage)
@@ -1172,65 +1334,106 @@ namespace Controllers.Scenes.SistemaDeManufactura
                 }
                 colorMessage = true;
             }
+            }
             //%%%%%%%%%%%%%%%%%%%% COLOR SENSOR ENDS %%%%%%%%%%%%%%%%%%%%
 
             //%%%%%%%%%%%%%%%%%%%% M1 STARTS %%%%%%%%%%%%%%%%%%%%
+            { 
             roboM1.Takeaway();
+            ftAtM1end.CLK(sensorM1end.Value);
 
-            if ((startC1fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+            if (manual.Value)
             {
-                if (m1Counter == 0)
+                if ((startC1fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+                {
+                    if (m1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c1");
+                        if (supervisoryApproval)
+                        {
+                            m1states = M1states.C1fromB1toM1;
+                            m1Counter++;
+                        }
+                    }
+                }
+                else if ((startC2fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+                {
+                    if (m1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2_b1");
+                        if (supervisoryApproval)
+                        {
+                            m1states = M1states.C2fromB1toM1;
+                            m1Counter++;
+                        }
+                    }
+                }
+                else if ((startC2fromB2toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+                {
+                    if (m1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2");
+                        if (supervisoryApproval)
+                        {
+                            m1states = M1states.C2fromB2toM1;
+                            m1Counter++;
+                        }
+                    }
+                }
+                else if ((startC3fromB3toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
+                {
+                    if (m1Counter == 0)
+                    {
+                        supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c3");
+                        if (supervisoryApproval)
+                        {
+                            m1states = M1states.C3fromB3toM1;
+                            m1Counter++;
+                        }
+                    }
+                }
+                else
+                {
+                    m1Counter = 0;
+                }
+            }
+            else if (automatic.Value)//Auto
+            {
+                if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("M1_c1") && m1states == M1states.IDLE)
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C1fromB1toM1;
-                        m1Counter++;
                     }
                 }
-            }
-            else if ((startC2fromB1toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2_b1" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
-            {
-                if (m1Counter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("M1_c2_b1") && m1states == M1states.IDLE)
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2_b1");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB1toM1;
-                        m1Counter++;
                     }
                 }
-            }
-            else if ((startC2fromB2toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c2" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
-            {
-                if (m1Counter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("M1_c2") && m1states == M1states.IDLE)
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c2");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C2fromB2toM1;
-                        m1Counter++;
                     }
                 }
-            }
-            else if ((startC3fromB3toM1.Value && m1states == M1states.IDLE) || (newStateName == "M1_c3" && sistemaDeManufaturaSupervisor.IsInActiveEvents(int.Parse(newState)) && m1states == M1states.IDLE))
-            {
-                if (m1Counter == 0)
+                else if (sistemaDeManufaturaSupervisor.IsInActiveEventsString("M1_c3") && m1states == M1states.IDLE)
                 {
                     supervisoryApproval = sistemaDeManufaturaSupervisor.On("M1_c3");
                     if (supervisoryApproval)
                     {
                         m1states = M1states.C3fromB3toM1;
-                        m1Counter++;
                     }
                 }
             }
-            else
-            {
-                m1Counter = 0;
-            }
 
-            
+
 
             if (m1states == M1states.IDLE)
             {
@@ -1269,7 +1472,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     m1states = M1states.IDLE;
                     sistemaDeManufaturaSupervisor.On("M1_fin");
                 }
-                
+
             }
             else if (m1states == M1states.C2fromB1toM1)
             {
@@ -1426,17 +1629,60 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     sistemaDeManufaturaSupervisor.On("M1_fin");
                 }
             }
-
-            if (sensorM1end.Value)
-            {
-                remover.Value = true;
-            }
-            else
-            {
-                remover.Value = false;
             }
 
             //%%%%%%%%%%%%%%%%%%%% M1 ENDS %%%%%%%%%%%%%%%%%%%%
+        }
+        private void E2Loader()
+        {
+            if (bufferE2LoadingStage == BufferE2LoadingStage.START_LOADING)
+            {
+                E2Stopblade.Value = false;
+                conveyorPreEndE2.Value = 1.0f;
+                conveyorEndE2.Value = 1.0f;
+                if (rtAfterBlade.Q)
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.SEPARATE_PIECES;
+                }
+            }
+            else if (bufferE2LoadingStage == BufferE2LoadingStage.SEPARATE_PIECES)
+            {
+                conveyorPreEndE2.Value = 0;
+                if (ftAfterBlade.Q)
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.REACHING_ROBOT_ARM;
+                }
+            }
+            else if (bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM)
+            {
+                E2Stopblade.Value = true;
+                if (sensorAtRobotArm.Value)
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.IDLE;
+                    conveyorEndE2.Value = 0;
+                }
+            }
+            else if (bufferE2LoadingStage == BufferE2LoadingStage.IDLE)
+            {
+            }
+        }
+        
+        private void E2conveyors()
+        {
+            if (e2ConveyorsOnOff == E2ConveyorsOnOff.CONVEYORS_ON)
+            {
+                //conveyorStartE2.Value = 0.5f;
+                conveyorStartE2.Value = 4.0f;
+                conveyorFirstCornerE2.Value = true;
+                //conveyorMiddleE2.Value = 1;
+                conveyorMiddleE2.Value = 4.0f;
+            }
+            else if (e2ConveyorsOnOff == E2ConveyorsOnOff.CONVEYORS_OFF)
+            {
+                conveyorStartE2.Value = 0;
+                conveyorFirstCornerE2.Value = false;
+                conveyorMiddleE2.Value = 0;
+            }
         }
     }
 }

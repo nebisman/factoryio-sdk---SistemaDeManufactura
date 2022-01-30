@@ -47,16 +47,15 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit sensorB2end;
         readonly MemoryBit sensorB3end;
         readonly MemoryBit sensorM1end;
-        readonly MemoryBit startC1fromB1toM1;
-        readonly MemoryBit startC2fromB1toM1;
-        readonly MemoryBit startC2fromB2toM1;
-        readonly MemoryBit startC3fromB3toM1;
         bool pieceFound;
+        readonly FTRIG ftAtM1end;
+        int counterM1conveyor;
         public SistemaDeManufatura_M1(MemoryFloat roboM1X, MemoryFloat roboM1XPos, MemoryFloat roboM1Y, 
             MemoryFloat roboM1YPos, MemoryFloat roboM1Z, MemoryFloat roboM1ZPos, MemoryBit roboM1Grab, 
             MemoryBit roboM1Grabbed, MemoryBit conveyorB1, MemoryBit conveyorB2, MemoryBit conveyorB3, MemoryBit conveyorM1,
-            MemoryBit sensorB1start, MemoryBit sensorB2start, MemoryBit sensorB3start, MemoryBit sensorB1end, MemoryBit sensorB2end, MemoryBit sensorB3end, MemoryBit sensorM1end,
-            MemoryBit startC1fromB1toM1, MemoryBit startC2fromB1toM1, MemoryBit startC2fromB2toM1, MemoryBit startC3fromB3toM1)
+            MemoryBit sensorB1start, MemoryBit sensorB2start, MemoryBit sensorB3start, 
+            MemoryBit sensorB1end, MemoryBit sensorB2end, MemoryBit sensorB3end, MemoryBit sensorM1end
+            )
         {
             this.roboM1X = roboM1X;
             this.roboM1XPos = roboM1XPos;
@@ -77,13 +76,11 @@ namespace Controllers.Scenes.SistemaDeManufactura
             this.sensorB2end = sensorB2end;
             this.sensorB3end = sensorB3end;
             this.sensorM1end = sensorM1end;
-            this.startC1fromB1toM1 = startC1fromB1toM1;
-            this.startC2fromB1toM1 = startC2fromB1toM1;
-            this.startC2fromB2toM1 = startC2fromB2toM1;
-            this.startC3fromB3toM1 = startC3fromB3toM1;
             roboM1Steps = RoboSteps.IDLE;
             takeawaySteps = TakeawaySteps.IDLE;
             pieceFound = false;
+            ftAtM1end = new FTRIG();            
+            counterM1conveyor = 0;
         }
 
         public bool C1fromB1toM1()
@@ -451,10 +448,11 @@ namespace Controllers.Scenes.SistemaDeManufactura
 
         public void Takeaway()
         {
+            ftAtM1end.CLK(sensorM1end.Value);
             if (takeawaySteps == TakeawaySteps.TAKING_AWAY)
             {
                 conveyorM1.Value = true;
-                if (sensorM1end.Value)
+                if (ftAtM1end.Q)
                 {
                     takeawaySteps = TakeawaySteps.IDLE;
                 }
