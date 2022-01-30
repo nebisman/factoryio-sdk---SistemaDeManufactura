@@ -82,8 +82,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
         readonly MemoryBit sensorEighthSpotE2;
         readonly MemoryBit sensorNinthSpotE2;
         readonly MemoryBit sensorTenthSpotE2;
-        readonly MemoryBit sensorEleventhSpotE2;
-        readonly MemoryBit sensorTwelvethSpotE2;
         readonly MemoryBit sensorAfterBlade;
         readonly MemoryBit sensorAtRobotArm;
         readonly MemoryBit sensorBeforeBuffer;
@@ -279,8 +277,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
             sensorEighthSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 17", MemoryType.Input);
             sensorNinthSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 19", MemoryType.Input);
             sensorTenthSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 21", MemoryType.Input);
-            sensorEleventhSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 18", MemoryType.Input);
-            sensorTwelvethSpotE2 = MemoryMap.Instance.GetBit("Diffuse Sensor 20", MemoryType.Input);
             sensorAfterBlade = MemoryMap.Instance.GetBit("Diffuse Sensor 23", MemoryType.Input);
             sensorAtRobotArm = MemoryMap.Instance.GetBit("Diffuse Sensor 24", MemoryType.Input);
             sensorBeforeBuffer = MemoryMap.Instance.GetBit("Diffuse Sensor 25", MemoryType.Input);
@@ -867,216 +863,189 @@ namespace Controllers.Scenes.SistemaDeManufactura
             }
             else if (bufferE2 == BufferE2.FIVE)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.SIX;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.FOUR;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && !sensorFifthSpotE2.Value && (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.SIX)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.SEVEN;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.FIVE;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && !sensorSixthSpotE2.Value && (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.SEVEN)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.EIGHT;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.SIX;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && !sensorSeventhSpotE2.Value && (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.EIGHT)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.NINE;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.SEVEN;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && !sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && 
+                    sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && !sensorEighthSpotE2.Value && 
+                    (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.NINE)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.TEN;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.EIGHT;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value &&
+                    sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value &&
+                    !sensorNinthSpotE2.Value && (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.TEN)
             {
-                if (rtSensorStartE2.Q == true)
+                if (rtSensorStartE2.Q)//Piece arrives to E2
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_ON;
                     bufferE2 = BufferE2.ELEVEN;
                 }
-                else if (ftSensorPreEndE2.Q == true)
+                else if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.NINE;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && !sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
+                }
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
+                {
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
+                }
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value &&
+                    sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value &&
+                    sensorNinthSpotE2.Value && !sensorTenthSpotE2.Value && 
+                    (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
+                {
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
             else if (bufferE2 == BufferE2.ELEVEN)
             {
-                if (rtSensorStartE2.Q == true)
+                if (ftAtRobotArm.Q)//Robot arm takes piece from E2 to E1
                 {
-                    conveyorStartE2.Value = 0.5f;
-                    conveyorFirstCornerE2.Value = 0.5f;
-                    conveyorMiddleE2.Value = 0.5f;
-                    conveyorSecondCornerE2.Value = 0.5f;
-                    conveyorPreEndE2.Value = 0.5f;
-                    conveyorEndE2.Value = 0.5f;
-                    bufferE2 = BufferE2.TWELVE;
-                }
-                else if (ftSensorPreEndE2.Q == true)
-                {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                     bufferE2 = BufferE2.TEN;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && !sensorTwelvethSpotE2.Value)
+                else if (rtBeforeBuffer.Q)//Piece arrives to before buffer sensor
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2BeforeBuffer = E2BeforeBuffer.TAKING_PIECES_TO_BUFFER;
                 }
-            }
-            else if (bufferE2 == BufferE2.TWELVE)
-            {
-                if (ftSensorPreEndE2.Q == true)
+                else if (sensorPreEndE2.Value && !sensorAtRobotArm.Value && bufferE2LoadingStage == BufferE2LoadingStage.IDLE)//First piece incoming
                 {
-                    conveyorEndE2.Value = 1;
-                    conveyorPreEndE2.Value = 1;
-                    bufferE2 = BufferE2.ELEVEN;
+                    bufferE2LoadingStage = BufferE2LoadingStage.START_LOADING;
                 }
-                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value && sensorNinthSpotE2.Value && sensorTenthSpotE2.Value && sensorEleventhSpotE2.Value && sensorTwelvethSpotE2.Value)
+                else if (sensorPreEndE2.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value &&
+                    sensorFifthSpotE2.Value && sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value &&
+                    sensorNinthSpotE2.Value && sensorTenthSpotE2.Value &&
+                    (sensorAtRobotArm.Value || bufferE2LoadingStage == BufferE2LoadingStage.REACHING_ROBOT_ARM))
                 {
-                    conveyorStartE2.Value = 0;
-                    conveyorFirstCornerE2.Value = 0;
-                    conveyorMiddleE2.Value = 0;
-                    conveyorSecondCornerE2.Value = 0;
-                    conveyorPreEndE2.Value = 0;
-                    conveyorEndE2.Value = 0;
+                    e2ConveyorsOnOff = E2ConveyorsOnOff.CONVEYORS_OFF;
+                    e2BeforeBuffer = E2BeforeBuffer.TURN_OFF_CONVEYORS;
                 }
             }
 
@@ -1668,16 +1637,16 @@ namespace Controllers.Scenes.SistemaDeManufactura
         {
             if (e2ConveyorsOnOff == E2ConveyorsOnOff.CONVEYORS_ON)
             {
-                //conveyorStartE2.Value = 0.5f;
-                conveyorStartE2.Value = 4.0f;
-                //conveyorPostStartE2.Value = 0.5f;
-                conveyorPostStartE2.Value = 4.0f;
-                //conveyorFirstCornerE2.Value = 0.5f;
-                conveyorFirstCornerE2.Value = -4.0f;
-                //conveyorMiddleE2.Value = 0.5f;
-                conveyorMiddleE2.Value = 4.0f;
-                //conveyorSecondCornerE2.Value = 0.5f;
-                conveyorSecondCornerE2.Value = -4.0f;
+                conveyorStartE2.Value = 0.5f;
+                //conveyorStartE2.Value = 4.0f;
+                conveyorPostStartE2.Value = 0.5f;
+                //conveyorPostStartE2.Value = 4.0f;
+                conveyorFirstCornerE2.Value = -0.5f;
+                //conveyorFirstCornerE2.Value = -4.0f;
+                conveyorMiddleE2.Value = 0.5f;
+                //conveyorMiddleE2.Value = 4.0f;
+                conveyorSecondCornerE2.Value = -0.5f;
+                //conveyorSecondCornerE2.Value = -4.0f;
                 conveyorPrePreEndE2.Value = 1.0f;
             }
             else if (e2ConveyorsOnOff == E2ConveyorsOnOff.CONVEYORS_OFF)
