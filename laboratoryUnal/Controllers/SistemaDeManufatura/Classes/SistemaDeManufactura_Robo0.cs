@@ -455,7 +455,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
             {
                 stopbladeEndE1.Value = true;
                 robo0X.Value = 9.25f;
-                robo0Y.Value = 2.5f;
+                robo0Y.Value = 2.2f;
                 robo0RotatePiece.Value = true;
                 if (robo0XPos.Value > 9.24f && robo0YPos.Value > 2.09f)
                 {
