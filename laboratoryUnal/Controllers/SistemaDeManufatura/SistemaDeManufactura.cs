@@ -654,7 +654,7 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     else if (e2toE1Steps == E2toE1Steps.DOWN_LOOKING_FOR_PIECE)
                     {
                         armZ.Value = 8.7f;
-                        if (armZpos.Value > 8.0f)
+                        if (armZpos.Value > 8.6f)
                         {
                             e2toE1Steps = E2toE1Steps.GRABBING_PIECE;
                         }
@@ -662,7 +662,8 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     else if (e2toE1Steps == E2toE1Steps.GRABBING_PIECE)
                     {
                         armGrab.Value = true;
-                        if (armPieceDetected.Value && armZpos.Value > 8.6f)
+                        armZ.Value = 8.9f;
+                        if (armPieceDetected.Value && armZpos.Value > 8.7f)
                         {
                             e2toE1Steps = E2toE1Steps.UP_WITH_PIECE;
                         }
@@ -1173,7 +1174,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                     {
                         if (sensorEndE1.Value && sensorSecondSpotE2.Value)
                         {
-                            Console.WriteLine("here2 inside");
                             conveyorPreEndE2.Value = 0;
                         }
                     }
@@ -1182,7 +1182,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                         if (sensorEndE1.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value)
                         {
                             conveyorPreEndE2.Value = 0;
-                            Console.WriteLine("here3 inside");
                         }
                     }
                     else if (e2PieceCounter == 4 && (bufferE2LoadingStage == BufferE2LoadingStage.IDLE || bufferE2LoadingStage != BufferE2LoadingStage.REACHING_ROBOT_ARM))
@@ -1190,14 +1189,12 @@ namespace Controllers.Scenes.SistemaDeManufactura
                         if (sensorEndE1.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value)
                         {
                             conveyorPreEndE2.Value = 0;
-                            Console.WriteLine("here4 inside");
                         }
                     }
                     else if (e2PieceCounter == 5 && (bufferE2LoadingStage == BufferE2LoadingStage.IDLE || bufferE2LoadingStage != BufferE2LoadingStage.REACHING_ROBOT_ARM))
                     {
                         if (sensorEndE1.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value)
                         {
-                            Console.WriteLine("here5 inside");
                             conveyorPreEndE2.Value = 0;
                         }
 
@@ -1207,7 +1204,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                         if (sensorEndE1.Value && sensorSecondSpotE2.Value && sensorThirdSpotE2.Value && sensorFourthSpotE2.Value && sensorFifthSpotE2.Value &&
                             sensorSixthSpotE2.Value)
                         {
-                            Console.WriteLine("here6 inside");
                             conveyorPreEndE2.Value = 0;
                         }
                     }
@@ -1217,7 +1213,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                             sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value)
                         {
                             conveyorPreEndE2.Value = 0;
-                            Console.WriteLine("here7 inside");
                         }
                     }
                     else if (e2PieceCounter == 8 && (bufferE2LoadingStage == BufferE2LoadingStage.IDLE || bufferE2LoadingStage != BufferE2LoadingStage.REACHING_ROBOT_ARM))
@@ -1226,7 +1221,6 @@ namespace Controllers.Scenes.SistemaDeManufactura
                             sensorSixthSpotE2.Value && sensorSeventhSpotE2.Value && sensorEighthSpotE2.Value)
                         {
                             conveyorPreEndE2.Value = 0;
-                            Console.WriteLine("here8 inside");
                         }
                             
                     }
